@@ -35,7 +35,7 @@ router.get('/dashboard', async (req, res) => {
   try {
     const Property = require('../models/Property');
     const Commission = require('../models/Commission');
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     // Get broker's properties (both added and assigned)
     const addedProperties = await Property.find({
@@ -199,7 +199,7 @@ router.get('/properties/add', (req, res) => {
 router.post('/properties/add', upload.array('images', 20), async (req, res) => {
   try {
     const Property = require('../models/Property');
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     // Validate required fields
     const requiredFields = ['title', 'price', 'property_type', 'seller'];
@@ -362,7 +362,7 @@ router.get('/properties/:id', async (req, res) => {
   try {
     const Property = require('../models/Property');
     const Commission = require('../models/Commission');
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     const property = await Property.findOne({
       _id: req.params.id,
@@ -789,7 +789,7 @@ router.get('/visits/schedule/:propertyId', async (req, res) => {
 // ========== API: GET SELLERS FOR BROKER ==========
 router.get('/api/sellers', async (req, res) => {
   try {
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     const sellers = await User.find({
       role: 'seller',

@@ -155,7 +155,7 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    const User = require('./models/User');
+    const User = require(../models/user');
     const user = await User.findOne({ email });
     
     if (!user) {
@@ -234,7 +234,7 @@ app.post('/api/register', async (req, res) => {
   try {
     const { name, email, phone, password, role = 'buyer' } = req.body;
     
-    const User = require('./models/User');
+    const User = require(../models/user');
     
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {

@@ -1,5 +1,5 @@
 // controllers/adminController.js
-const User = require('../models/User');
+const User = require('../models/user');
 const Property = require('../models/Property');
 const Cart = require('../models/Cart');
 const Commission = require('../models/Commission');

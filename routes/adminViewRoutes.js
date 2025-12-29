@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
 const Property = require('../models/Property');
-const User = require('../models/User');
+const User = require('../models/user');
 const Commission = require('../models/Commission');
 const mongoose = require('mongoose');
 

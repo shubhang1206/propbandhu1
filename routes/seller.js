@@ -611,7 +611,7 @@ router.get('/properties/:id', async (req, res) => {
     console.log('Property ID:', req.params.id);
     
     const Property = require('../models/Property');
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     // Find property belonging to this seller
     const property = await Property.findOne({
@@ -762,7 +762,7 @@ router.get('/properties/:id', async (req, res) => {
 router.get('/properties/:id/cart-details', async (req, res) => {
   try {
     const Property = require('../models/Property');
-    const User = require('../models/User');
+    const User = require('../models/user');
     
     const property = await Property.findOne({
       _id: req.params.id,

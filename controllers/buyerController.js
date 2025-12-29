@@ -2,7 +2,7 @@ const Property = require('../models/Property');
 const Cart = require('../models/Cart');
 const Rule = require('../models/Rule');
 const Notification = require('../models/Notification');
-const User = require('../models/User');
+const User = require('../models/user');
 
 // Get buyer dashboard
 exports.getDashboard = async (req, res) => {
