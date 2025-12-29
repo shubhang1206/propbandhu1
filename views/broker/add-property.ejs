@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Propbandhu</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        #image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .preview-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        .image-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Broker Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/broker/dashboard" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-900">Propbandhu Broker</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700 font-medium">🤝 Broker: <%= user.name %></span>
+                    <a href="/broker/dashboard" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                    </a>
+                    <a href="/broker/properties" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-home mr-1"></i>Properties
+                    </a>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Add Property as Broker</h1>
+            <p class="text-gray-600 mt-2">Add a new property for sale and earn commissions</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <form id="addPropertyForm" enctype="multipart/form-data">
+                <!-- Basic Information -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>Basic Information
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Property Title -->
+                        <div class="md:col-span-2">
+                            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                                Property Title <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="title" 
+                                   name="title" 
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., Beautiful 3 BHK Apartment in Prime Location">
+                        </div>
+
+                        <!-- Property Type -->
+                        <div>
+                            <label for="property_type" class="block text-sm font-medium text-gray-700 mb-2">
+                                Property Type <span class="text-red-500">*</span>
+                            </label>
+                            <select id="property_type" 
+                                    name="property_type" 
+                                    required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Type</option>
+                                <option value="apartment">Apartment</option>
+                                <option value="villa">Villa</option>
+                                <option value="independent_house">Independent House</option>
+                                <option value="plot">Plot/Land</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="farm_house">Farm House</option>
+                            </select>
+                        </div>
+
+                        <!-- Sub Type -->
+                        <div>
+                            <label for="sub_type" class="block text-sm font-medium text-gray-700 mb-2">
+                                Sub Type
+                            </label>
+                            <select id="sub_type" 
+                                    name="sub_type" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="apartment">Apartment</option>
+                                <option value="studio">Studio</option>
+                                <option value="penthouse">Penthouse</option>
+                                <option value="duplex">Duplex</option>
+                                <option value="row_house">Row House</option>
+                            </select>
+                        </div>
+
+                        <!-- Price -->
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700 mb-2">
+                                Price (₹) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" 
+                                   id="price" 
+                                   name="price" 
+                                   required
+                                   min="100000"
+                                   step="10000"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 5000000">
+                        </div>
+
+                        <!-- Price Type -->
+                        <div>
+                            <label for="price_type" class="block text-sm font-medium text-gray-700 mb-2">
+                                Price Type
+                            </label>
+                            <select id="price_type" 
+                                    name="price_type" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="fixed">Fixed</option>
+                                <option value="negotiable">Negotiable</option>
+                                <option value="per_sqft">Per Sq Ft</option>
+                            </select>
+                        </div>
+
+                        <!-- Seller -->
+                        <div class="md:col-span-2">
+                            <label for="seller" class="block text-sm font-medium text-gray-700 mb-2">
+                                Seller <span class="text-red-500">*</span>
+                            </label>
+                            <select id="seller" 
+                                    name="seller" 
+                                    required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Seller</option>
+                                <!-- Will be populated by JavaScript -->
+                            </select>
+                            <p class="text-sm text-gray-500 mt-2">
+                                Select the seller who owns this property. If not listed, ask seller to register first.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Details -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                        <i class="fas fa-home mr-2 text-green-600"></i>Property Details
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Bedrooms -->
+                        <div>
+                            <label for="bedrooms" class="block text-sm font-medium text-gray-700 mb-2">
+                                Bedrooms
+                            </label>
+                            <select id="bedrooms" 
+                                    name="bedrooms" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+
+                        <!-- Bathrooms -->
+                        <div>
+                            <label for="bathrooms" class="block text-sm font-medium text-gray-700 mb-2">
+                                Bathrooms
+                            </label>
+                            <select id="bathrooms" 
+                                    name="bathrooms" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+
+                        <!-- Balconies -->
+                        <div>
+                            <label for="balconies" class="block text-sm font-medium text-gray-700 mb-2">
+                                Balconies
+                            </label>
+                            <select id="balconies" 
+                                    name="balconies" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3+</option>
+                            </select>
+                        </div>
+
+                        <!-- Built Up Area -->
+                        <div>
+                            <label for="built_up_area" class="block text-sm font-medium text-gray-700 mb-2">
+                                Built Up Area
+                            </label>
+                            <div class="flex">
+                                <input type="number" 
+                                       id="built_up_area" 
+                                       name="built_up_area" 
+                                       min="1"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g., 1200">
+                                <select id="area_unit" 
+                                        name="area_unit" 
+                                        class="px-4 py-3 border border-l-0 border-gray-300 rounded-r-lg focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="sqft">Sq Ft</option>
+                                    <option value="sqm">Sq M</option>
+                                    <option value="acre">Acre</option>
+                                    <option value="hectare">Hectare</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Carpet Area -->
+                        <div>
+                            <label for="carpet_area" class="block text-sm font-medium text-gray-700 mb-2">
+                                Carpet Area
+                            </label>
+                            <input type="number" 
+                                   id="carpet_area" 
+                                   name="carpet_area" 
+                                   min="1"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 1000">
+                        </div>
+
+                        <!-- Age of Property -->
+                        <div>
+                            <label for="age_of_property" class="block text-sm font-medium text-gray-700 mb-2">
+                                Age of Property (Years)
+                            </label>
+                            <input type="number" 
+                                   id="age_of_property" 
+                                   name="age_of_property" 
+                                   min="0"
+                                   max="100"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 5">
+                        </div>
+
+                        <!-- Floor Number -->
+                        <div>
+                            <label for="floor_number" class="block text-sm font-medium text-gray-700 mb-2">
+                                Floor Number
+                            </label>
+                            <input type="number" 
+                                   id="floor_number" 
+                                   name="floor_number" 
+                                   min="0"
+                                   max="100"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 3">
+                        </div>
+
+                        <!-- Total Floors -->
+                        <div>
+                            <label for="total_floors" class="block text-sm font-medium text-gray-700 mb-2">
+                                Total Floors
+                            </label>
+                            <input type="number" 
+                                   id="total_floors" 
+                                   name="total_floors" 
+                                   min="1"
+                                   max="100"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 10">
+                        </div>
+
+                        <!-- Furnishing -->
+                        <div>
+                            <label for="furnishing" class="block text-sm font-medium text-gray-700 mb-2">
+                                Furnishing
+                            </label>
+                            <select id="furnishing" 
+                                    name="furnishing" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="unfurnished">Unfurnished</option>
+                                <option value="semi_furnished">Semi-Furnished</option>
+                                <option value="fully_furnished">Fully Furnished</option>
+                            </select>
+                        </div>
+
+                        <!-- Facing -->
+                        <div>
+                            <label for="facing" class="block text-sm font-medium text-gray-700 mb-2">
+                                Facing
+                            </label>
+                            <select id="facing" 
+                                    name="facing" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Direction</option>
+                                <option value="north">North</option>
+                                <option value="south">South</option>
+                                <option value="east">East</option>
+                                <option value="west">West</option>
+                                <option value="north_east">North-East</option>
+                                <option value="north_west">North-West</option>
+                                <option value="south_east">South-East</option>
+                                <option value="south_west">South-West</option>
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="md:col-span-3">
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Description
+                            </label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      rows="4"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Describe the property features, location advantages, etc."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                        <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>Address Details
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Street -->
+                        <div>
+                            <label for="address[street]" class="block text-sm font-medium text-gray-700 mb-2">
+                                Street
+                            </label>
+                            <input type="text" 
+                                   id="address[street]" 
+                                   name="address[street]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 123 Main Street">
+                        </div>
+
+                        <!-- Landmark -->
+                        <div>
+                            <label for="address[landmark]" class="block text-sm font-medium text-gray-700 mb-2">
+                                Landmark
+                            </label>
+                            <input type="text" 
+                                   id="address[landmark]" 
+                                   name="address[landmark]" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., Near City Mall">
+                        </div>
+
+                        <!-- Area -->
+                        <div>
+                            <label for="address[area]" class="block text-sm font-medium text-gray-700 mb-2">
+                                Area/Locality <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="address[area]" 
+                                   name="address[area]" 
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., Koramangala">
+                        </div>
+
+                        <!-- City -->
+                        <div>
+                            <label for="address[city]" class="block text-sm font-medium text-gray-700 mb-2">
+                                City <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="address[city]" 
+                                   name="address[city]" 
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., Bangalore">
+                        </div>
+
+                        <!-- State -->
+                        <div>
+                            <label for="address[state]" class="block text-sm font-medium text-gray-700 mb-2">
+                                State <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="address[state]" 
+                                   name="address[state]" 
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., Karnataka">
+                        </div>
+
+                        <!-- Pincode -->
+                        <div>
+                            <label for="address[pincode]" class="block text-sm font-medium text-gray-700 mb-2">
+                                Pincode
+                            </label>
+                            <input type="text" 
+                                   id="address[pincode]" 
+                                   name="address[pincode]" 
+                                   pattern="[0-9]{6}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="e.g., 560034">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                        <i class="fas fa-images mr-2 text-purple-600"></i>Property Images
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <label for="images" class="block text-sm font-medium text-gray-700 mb-2">
+                            Upload Images <span class="text-red-500">*</span>
+                            <span class="text-sm text-gray-500">(Minimum 3 images, Maximum 20 images)</span>
+                        </label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition">
+                            <input type="file" 
+                                   id="images" 
+                                   name="images" 
+                                   multiple 
+                                   accept="image/*"
+                                   class="hidden"
+                                   onchange="previewImages(event)">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600 mb-2">Drag & drop images or click to browse</p>
+                            <p class="text-sm text-gray-500 mb-4">Supported formats: JPG, PNG, WEBP, GIF (Max 10MB each)</p>
+                            <button type="button" 
+                                    onclick="document.getElementById('images').click()"
+                                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                                <i class="fas fa-upload mr-2"></i>Browse Images
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="image-preview" class="mb-4"></div>
+                    <p id="image-count" class="text-sm text-gray-500">No images selected</p>
+                </div>
+
+                <!-- Amenities -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">
+                        <i class="fas fa-check-circle mr-2 text-yellow-600"></i>Amenities
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <% const amenitiesList = [
+                            'power_backup', 'water_supply', 'security', 'parking',
+                            'gym', 'swimming_pool', 'garden', 'club_house',
+                            'play_area', 'lift', 'internet', 'tv_cable',
+                            'air_conditioning', 'heating', 'balcony', 'terrace'
+                        ]; %>
+                        
+                        <% amenitiesList.forEach(amenity => { %>
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   id="amenity_<%= amenity %>" 
+                                   name="amenities" 
+                                   value="<%= amenity %>"
+                                   class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="amenity_<%= amenity %>" class="ml-2 text-sm text-gray-700 capitalize">
+                                <%= amenity.replace('_', ' ') %>
+                            </label>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-4">
+                    <a href="/broker/properties" 
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </a>
+                    <button type="submit" 
+                            id="submitBtn"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        <span>Submit Property</span>
+                        <span id="loadingSpinner" class="hidden ml-2">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let selectedImages = [];
+        let sellers = [];
+
+        // Fetch sellers on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchSellers();
+        });
+
+        // Fetch sellers from API
+        async function fetchSellers() {
+            try {
+                const response = await fetch('/broker/api/sellers');
+                const data = await response.json();
+                
+                if (data.success) {
+                    sellers = data.sellers;
+                    const sellerSelect = document.getElementById('seller');
+                    
+                    sellers.forEach(seller => {
+                        const option = document.createElement('option');
+                        option.value = seller._id;
+                        option.textContent = `${seller.name} (${seller.phone || seller.email})`;
+                        sellerSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching sellers:', error);
+            }
+        }
+
+        // Preview images
+        function previewImages(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('image-preview');
+            const count = document.getElementById('image-count');
+            
+            // Clear previous previews
+            preview.innerHTML = '';
+            selectedImages = [];
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert(`File ${file.name} is not an image. Please select only image files.`);
+                    continue;
+                }
+                
+                // Validate file size (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                    continue;
+                }
+                
+                selectedImages.push(file);
+                
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+                    img.alt = file.name;
+                    
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'image-remove';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.onclick = function() {
+                        removeImage(i);
+                    };
+                    
+                    div.appendChild(img);
+                    div.appendChild(removeBtn);
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            count.textContent = `${selectedImages.length} image(s) selected`;
+        }
+
+        // Remove image from preview
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            
+            // Re-render preview
+            const preview = document.getElementById('image-preview');
+            const count = document.getElementById('image-count');
+            
+            preview.innerHTML = '';
+            
+            selectedImages.forEach((file, i) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+                    img.alt = file.name;
+                    
+                    const removeBtn = document.createElement('div');
+                    removeBtn.className = 'image-remove';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.onclick = function() {
+                        removeImage(i);
+                    };
+                    
+                    div.appendChild(img);
+                    div.appendChild(removeBtn);
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            count.textContent = `${selectedImages.length} image(s) selected`;
+        }
+
+        // Form submission
+        document.getElementById('addPropertyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate minimum images
+            if (selectedImages.length < 3) {
+                alert('Please upload at least 3 images of the property.');
+                return;
+            }
+            
+            // Validate required fields
+            const requiredFields = ['title', 'property_type', 'price', 'seller', 'address[area]', 'address[city]', 'address[state]'];
+            for (const field of requiredFields) {
+                const element = document.querySelector(`[name="${field}"]`);
+                if (!element || !element.value.trim()) {
+                    const fieldName = field.replace(/\[|\]/g, '').replace('address', '').trim();
+                    alert(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required.`);
+                    element?.focus();
+                    return;
+                }
+            }
+            
+            // Show loading
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            submitBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            
+            try {
+                // Create FormData
+                const formData = new FormData(this);
+                
+                // Add images
+                selectedImages.forEach((image, index) => {
+                    formData.append('images', image);
+                });
+                
+                // Submit form
+                const response = await fetch('/broker/properties/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Property added successfully! Awaiting admin approval.');
+                    window.location.href = '/broker/properties';
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                alert('Failed to add property. Please try again.');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Auto-fill area unit based on property type
+        document.getElementById('property_type').addEventListener('change', function() {
+            const propertyType = this.value;
+            const areaUnit = document.getElementById('area_unit');
+            
+            if (propertyType === 'plot' || propertyType === 'farm_house') {
+                areaUnit.value = 'sqft';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Propbandhu</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Broker Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/broker/dashboard" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-900">Propbandhu Broker</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700 font-medium">🤝 Broker: <%= user.name %></span>
+                    <a href="/broker/dashboard" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                    </a>
+                    <a href="/broker/properties" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-home mr-1"></i>Properties
+                    </a>
+                    <a href="/broker/visits" class="text-gray-600 hover:text-blue-600 <%= activePage === 'broker' ? 'text-blue-600 font-semibold' : '' %>">
+                        <i class="fas fa-calendar-day mr-1"></i>Visits
+                    </a>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Schedule Visit</h1>
+            <p class="text-gray-600 mt-2">Schedule a property visit with the buyer</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Schedule Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <!-- Property Info -->
+                    <div class="mb-8">
+                        <div class="flex items-start mb-4">
+                            <% if (property.primary_image) { %>
+                            <img src="<%= property.primary_image %>" 
+                                 alt="<%= property.title %>" 
+                                 class="w-24 h-24 object-cover rounded-lg mr-4">
+                            <% } %>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900"><%= property.title %></h2>
+                                <p class="text-gray-600">
+                                    <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                                    <%= property.address ? property.address.area + ', ' + property.address.city : 'Location not specified' %>
+                                </p>
+                                <p class="text-lg font-bold text-blue-600 mt-1">
+                                    <%= property.formatted_price %>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Days Left Warning -->
+                        <% if (daysLeft <= 3) { %>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 text-xl mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-yellow-700">Hurry! Limited Time Left</h4>
+                                    <p class="text-yellow-600 text-sm mt-1">
+                                        Only <%= daysLeft %> day(s) left to schedule a visit before the property is removed from cart.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Buyer Info -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <h3 class="font-semibold text-blue-900 mb-3">
+                            <i class="fas fa-user mr-2"></i>Buyer Information
+                        </h3>
+                        <% if (buyer) { %>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-blue-800 font-medium"><%= buyer.name %></p>
+                                <p class="text-blue-700 text-sm mt-1">
+                                    <i class="fas fa-phone mr-2"></i> <%= buyer.phone || 'Phone not provided' %>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-blue-700 text-sm">
+                                    <i class="fas fa-envelope mr-2"></i> <%= buyer.email || 'Email not provided' %>
+                                </p>
+                                <p class="text-blue-700 text-sm mt-1">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Added to cart: 
+                                    <%= cartItem.added_at ? new Date(cartItem.added_at).toLocaleDateString('en-IN') : 'Unknown date' %>
+                                </p>
+                            </div>
+                        </div>
+                        <% } else { %>
+                        <p class="text-blue-700">Buyer information not available</p>
+                        <% } %>
+                    </div>
+
+                    <!-- Schedule Form -->
+                    <form id="scheduleVisitForm">
+                        <div class="space-y-6">
+                            <!-- Visit Date -->
+                            <div>
+                                <label for="visitDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Visit Date <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" 
+                                       id="visitDate" 
+                                       name="visitDate" 
+                                       required
+                                       min="<%= new Date().toISOString().split('T')[0] %>"
+                                       max="<%= visitExpiry.toISOString().split('T')[0] %>"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-sm text-gray-500 mt-1">
+                                    Must be before: <%= visitExpiry.toLocaleDateString('en-IN') %>
+                                </p>
+                            </div>
+
+                            <!-- Visit Time -->
+                            <div>
+                                <label for="visitTime" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Visit Time <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time" 
+                                       id="visitTime" 
+                                       name="visitTime" 
+                                       required
+                                       min="09:00"
+                                       max="18:00"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <p class="text-sm text-gray-500 mt-1">
+                                    Available hours: 9:00 AM to 6:00 PM
+                                </p>
+                            </div>
+
+                            <!-- Notes -->
+                            <div>
+                                <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Notes for Buyer (Optional)
+                                </label>
+                                <textarea id="notes" 
+                                          name="notes" 
+                                          rows="4"
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="Add any special instructions, meeting point details, or additional information for the buyer..."></textarea>
+                            </div>
+
+                            <!-- Seller Information -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h3 class="font-semibold text-green-900 mb-3">
+                                    <i class="fas fa-user-tie mr-2"></i>Seller Contact Information
+                                </h3>
+                                <% if (property.seller) { %>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-green-800 font-medium"><%= property.seller.name %></p>
+                                        <p class="text-green-700 text-sm mt-1">
+                                            <i class="fas fa-phone mr-2"></i> <%= property.seller.phone || 'Phone not provided' %>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-green-700 text-sm">
+                                            <i class="fas fa-home mr-2"></i> Property Owner
+                                        </p>
+                                        <p class="text-green-700 text-sm mt-1">
+                                            <i class="fas fa-info-circle mr-2"></i> Please coordinate visit timing with seller
+                                        </p>
+                                    </div>
+                                </div>
+                                <% } else { %>
+                                <p class="text-green-700">Seller information not available</p>
+                                <% } %>
+                            </div>
+
+                            <!-- Terms -->
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <input type="checkbox" 
+                                           id="terms" 
+                                           name="terms" 
+                                           required
+                                           class="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="terms" class="ml-2 text-sm text-gray-700">
+                                        I confirm that I have coordinated this visit timing with the seller and the buyer. 
+                                        I understand that confirming a visit starts the 60-day booking window for this property.
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                                <a href="/broker/visits" 
+                                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition">
+                                    <i class="fas fa-times mr-2"></i>Cancel
+                                </a>
+                                <button type="submit" 
+                                        id="submitBtn"
+                                        class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center">
+                                    <i class="fas fa-calendar-check mr-2"></i>
+                                    <span>Schedule Visit</span>
+                                    <span id="loadingSpinner" class="hidden ml-2">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <!-- Visit Guidelines -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Visit Guidelines</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="p-2 bg-blue-100 rounded-lg mr-3">
+                                <i class="fas fa-clock text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Timing</h3>
+                                <p class="text-sm text-gray-600 mt-1">Schedule visits between 9 AM to 6 PM only.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="p-2 bg-green-100 rounded-lg mr-3">
+                                <i class="fas fa-calendar-check text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Confirmation</h3>
+                                <p class="text-sm text-gray-600 mt-1">Visit must be confirmed within 7 days of adding to cart.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="p-2 bg-purple-100 rounded-lg mr-3">
+                                <i class="fas fa-handshake text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Booking Window</h3>
+                                <p class="text-sm text-gray-600 mt-1">Once confirmed, buyer has 60 days to complete booking.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="p-2 bg-yellow-100 rounded-lg mr-3">
+                                <i class="fas fa-money-bill-wave text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Commission</h3>
+                                <p class="text-sm text-gray-600 mt-1">You earn 2.5% commission when property is sold.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+                    
+                    <div class="space-y-3">
+                        <a href="tel:<%= property.seller?.phone %>" 
+                           class="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                            <i class="fas fa-phone mr-2"></i>Call Seller
+                        </a>
+                        
+                        <% if (buyer && buyer.phone) { %>
+                        <a href="tel:<%= buyer.phone %>" 
+                           class="block w-full border border-blue-600 text-blue-600 text-center py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                            <i class="fas fa-phone mr-2"></i>Call Buyer
+                        </a>
+                        <% } %>
+                        
+                        <a href="/broker/properties/<%= property._id %>" 
+                           class="block w-full border border-gray-600 text-gray-600 text-center py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
+                            <i class="fas fa-eye mr-2"></i>View Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Set minimum date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        document.getElementById('visitDate').min = tomorrowStr;
+
+        // Set default time to 10:00 AM
+        document.getElementById('visitTime').value = '10:00';
+
+        // Form submission
+        document.getElementById('scheduleVisitForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate date
+            const visitDate = document.getElementById('visitDate').value;
+            const visitTime = document.getElementById('visitTime').value;
+            const visitDateTime = new Date(`${visitDate}T${visitTime}`);
+            
+            if (visitDateTime < new Date()) {
+                alert('Please select a future date and time for the visit.');
+                return;
+            }
+            
+            // Show loading
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            submitBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            
+            try {
+                // Prepare data
+                const formData = new FormData(this);
+                const data = {
+                    propertyId: '<%= property._id %>',
+                    visitDate: formData.get('visitDate'),
+                    visitTime: formData.get('visitTime'),
+                    notes: formData.get('notes')
+                };
+                
+                // Submit to API
+                const response = await fetch('/buyer/api/visit/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Visit scheduled successfully!');
+                    window.location.href = '/broker/visits';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error scheduling visit:', error);
+                alert('Failed to schedule visit. Please try again.');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Auto-populate date picker with available dates
+        const visitDateInput = document.getElementById('visitDate');
+        const today = new Date();
+        const maxDate = new Date('<%= visitExpiry %>');
+        
+        // Disable weekends
+        visitDateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const dayOfWeek = selectedDate.getDay();
+            
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                alert('Weekends are not available for visits. Please select a weekday.');
+                this.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Propbandhu</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Broker Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/broker/dashboard" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-900">Propbandhu Broker</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700 font-medium">🤝 Broker: <%= user.name %></span>
+                    <a href="/broker/dashboard" class="text-gray-600 hover:text-blue-600 <%= activePage === 'broker' ? 'text-blue-600 font-semibold' : '' %>">
+                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                    </a>
+                    <a href="/broker/properties" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-home mr-1"></i>Properties
+                    </a>
+                    <a href="/broker/commissions" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-money-bill-wave mr-1"></i>Commissions
+                    </a>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl p-6 text-white mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Welcome, <%= user.name %>!</h1>
+                    <p class="text-purple-100">Track your brokerage performance</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold">₹<%= stats.totalCommission.toLocaleString() %></p>
+                    <p class="text-purple-100">Total Commission Earned</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Broker Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg mr-4">
+                        <i class="fas fa-home text-purple-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Properties</h3>
+                        <p class="text-3xl font-bold text-purple-600"><%= stats.totalProperties %></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg mr-4">
+                        <i class="fas fa-handshake text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Sold</h3>
+                        <p class="text-3xl font-bold text-green-600"><%= stats.soldProperties %></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-lg mr-4">
+                        <i class="fas fa-shopping-cart text-yellow-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">In Cart</h3>
+                        <p class="text-3xl font-bold text-yellow-600"><%= stats.inCartProperties %></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg mr-4">
+                        <i class="fas fa-money-check-alt text-blue-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Pending</h3>
+                        <p class="text-3xl font-bold text-blue-600">₹<%= stats.pendingCommission.toLocaleString() %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Commission History -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow p-6 mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-900">Recent Commissions</h2>
+                        <a href="/broker/commissions" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-history mr-2"></i>View All
+                        </a>
+                    </div>
+                    
+                    <% if (commissions.length === 0) { %>
+                        <div class="text-center py-12">
+                            <i class="fas fa-money-bill-wave text-gray-300 text-6xl mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No commissions yet</h3>
+                            <p class="text-gray-600">Start adding or selling properties to earn commissions</p>
+                        </div>
+                    <% } else { %>
+                        <div class="space-y-4">
+                            <% commissions.forEach(commission => { 
+                                const property = commission.property;
+                            %>
+                            <div class="border rounded-xl p-4 hover:bg-gray-50 transition">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 class="font-bold text-lg text-gray-900">
+                                            <%= property ? property.title : 'Property #' + commission.property %>
+                                        </h3>
+                                        <p class="text-gray-600 text-sm">
+                                            <%= commission.commission_type === 'adder' ? 'Added Property' : 'Sold Property' %>
+                                            <% if (property && property.price) { %>
+                                             • ₹<%= property.price.toLocaleString() %>
+                                            <% } %>
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium 
+                                            <%= commission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                               commission.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                               'bg-blue-100 text-blue-800' %>">
+                                            <%= commission.status %>
+                                        </span>
+                                        <p class="text-lg font-bold text-blue-600 mt-1">₹<%= commission.amount.toLocaleString() %></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center text-sm">
+                                    <div>
+                                        <span class="text-gray-600">Rate: </span>
+                                        <span class="font-medium"><%= commission.rate %>%</span>
+                                        <span class="mx-2">•</span>
+                                        <span class="text-gray-600">Type: </span>
+                                        <span class="font-medium"><%= commission.commission_type %></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600"><%= new Date(commission.createdAt).toLocaleDateString('en-IN') %></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <div>
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+                    <div class="space-y-3">
+                        <a href="/broker/properties/add" class="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-plus-circle mr-2"></i>Add Property
+                        </a>
+                        <a href="/broker/visits" class="block w-full border border-blue-600 text-blue-600 text-center py-3 rounded-lg hover:bg-blue-50 transition">
+                            <i class="fas fa-calendar-day mr-2"></i>Schedule Visit
+                        </a>
+                        <a href="/broker/properties" class="block w-full border border-green-600 text-green-600 text-center py-3 rounded-lg hover:bg-green-50 transition">
+                            <i class="fas fa-list mr-2"></i>View Properties
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Properties Summary -->
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Properties Summary</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Total Properties</span>
+                            <span class="font-bold text-gray-900"><%= stats.totalProperties %></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Properties Sold</span>
+                            <span class="font-bold text-green-600"><%= stats.soldProperties %></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">In Buyer Carts</span>
+                            <span class="font-bold text-blue-600"><%= stats.inCartProperties %></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Conversion Rate</span>
+                            <span class="font-bold text-purple-600">
+                                <%= stats.totalProperties > 0 ? Math.round((stats.soldProperties / stats.totalProperties) * 100) : 0 %>%
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" 
+                                 style="width: <%= stats.totalProperties > 0 ? Math.round((stats.soldProperties / stats.totalProperties) * 100) : 0 %>%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 text-center">
+                            Sales Conversion Rate
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Need Help? -->
+                <div class="mt-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow p-6 text-white">
+                    <h3 class="text-lg font-bold mb-3">Need Help?</h3>
+                    <p class="mb-4 text-blue-100">Contact support for assistance with properties, commissions, or visits.</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-phone mr-3"></i>
+                            <span>Call: 1800-123-4567</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope mr-3"></i>
+                            <span>Email: broker@propbandhu.com</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Dashboard -->
+    <script>
+        // Auto-refresh stats every 60 seconds
+        setInterval(() => {
+            fetch('/broker/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update stats display if needed
+                        console.log('Stats updated');
+                    }
+                })
+                .catch(error => console.error('Stats update error:', error));
+        }, 60000);
+    </script>
+</body>
+</html>

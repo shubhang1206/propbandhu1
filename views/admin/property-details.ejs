@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-badge {
+            @apply px-3 py-1 rounded-full text-xs font-semibold;
+        }
+        .status-pending { @apply bg-yellow-100 text-yellow-800; }
+        .status-approved { @apply bg-green-100 text-green-800; }
+        .status-live { @apply bg-blue-100 text-blue-800; }
+        .status-rejected { @apply bg-red-100 text-red-800; }
+        .status-suspended { @apply bg-orange-100 text-orange-800; }
+        .status-draft { @apply bg-gray-100 text-gray-800; }
+        
+        .info-card {
+            @apply bg-white rounded-xl shadow border border-gray-200 p-6;
+        }
+        
+        .property-image {
+            @apply w-full h-64 object-cover rounded-xl;
+        }
+        
+        .detail-row {
+            @apply flex justify-between py-3 border-b border-gray-100;
+        }
+        
+        .detail-label {
+            @apply text-gray-600 font-medium;
+        }
+        
+        .detail-value {
+            @apply text-gray-900;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/admin/dashboard" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                            <span class="text-white font-bold text-xl">P</span>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">Propbandhu</h1>
+                            <p class="text-xs text-gray-500">Admin Panel</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Right Section -->
+                <div class="flex items-center space-x-6">
+                    <!-- Back Button -->
+                    <a href="/admin/properties" class="text-blue-600 hover:text-blue-800 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Properties
+                    </a>
+                    
+                    <!-- User Profile -->
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right hidden md:block">
+                            <p class="font-medium text-gray-900"><%= user ? user.name : 'Admin' %></p>
+                            <p class="text-sm text-gray-500">Administrator</p>
+                        </div>
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                            <%= user && user.name ? user.name.charAt(0).toUpperCase() : 'A' %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Property Header -->
+        <div class="mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900"><%= property.title %></h1>
+                    <div class="flex items-center mt-2 space-x-4">
+                        <span class="status-badge status-<%= property.status %>">
+                            <%= property.status ? property.status.replace('_', ' ') : 'Unknown' %>
+                        </span>
+                        <span class="text-gray-600">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <% if (property.address && property.address.city) { %>
+                                <%= property.address.city %>
+                                <% if (property.address.area) { %>, <%= property.address.area %><% } %>
+                            <% } else { %>
+                                Location not specified
+                            <% } %>
+                        </span>
+                        <span class="text-2xl font-bold text-gray-900">
+                            ₹<%= property.price ? property.price.toLocaleString('en-IN') : '0' %>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <% if (property.status === 'pending_approval') { %>
+                        <button onclick="approveProperty()" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                            <i class="fas fa-check mr-2"></i> Approve
+                        </button>
+                        <button onclick="showRejectModal()" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+                            <i class="fas fa-times mr-2"></i> Reject
+                        </button>
+                    <% } else if (property.status === 'approved') { %>
+                        <button onclick="makeLive()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                            <i class="fas fa-eye mr-2"></i> Make Live
+                        </button>
+                        <button onclick="suspendProperty()" 
+                                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center">
+                            <i class="fas fa-pause mr-2"></i> Suspend
+                        </button>
+                    <% } else if (property.status === 'live') { %>
+                        <button onclick="suspendProperty()" 
+                                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center">
+                            <i class="fas fa-pause mr-2"></i> Suspend
+                        </button>
+                    <% } else if (property.status === 'suspended') { %>
+                        <button onclick="unsuspendProperty()" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                            <i class="fas fa-play mr-2"></i> Unsuspend
+                        </button>
+                    <% } %>
+                    
+                    <a href="/admin/properties/<%= property._id %>/edit" 
+                       class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Property Images & Basic Info -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Property Images -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Images</h3>
+                    <% if (property.images && property.images.length > 0) { %>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <% property.images.forEach((image, index) => { %>
+                                <div class="relative">
+                                    <img src="<%= image.url %>" 
+                                         alt="Property Image <%= index + 1 %>" 
+                                         class="property-image">
+                                    <% if (image.is_primary) { %>
+                                        <span class="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                                            Primary
+                                        </span>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-8">
+                            <i class="fas fa-image text-gray-300 text-4xl mb-3"></i>
+                            <p class="text-gray-500">No images available</p>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Property Description -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                    <p class="text-gray-700 whitespace-pre-line"><%= property.description %></p>
+                    
+                    <% if (property.short_description) { %>
+                        <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Short Description</h4>
+                            <p class="text-gray-600"><%= property.short_description %></p>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Property Details -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Details</h3>
+                    <div class="space-y-3">
+                        <div class="detail-row">
+                            <span class="detail-label">Property Type</span>
+                            <span class="detail-value"><%= property.property_type || 'Not specified' %></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Sub Type</span>
+                            <span class="detail-value"><%= property.sub_type || 'Not specified' %></span>
+                        </div>
+                        <% if (property.bedrooms !== undefined) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Bedrooms</span>
+                            <span class="detail-value"><%= property.bedrooms %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.bathrooms !== undefined) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Bathrooms</span>
+                            <span class="detail-value"><%= property.bathrooms %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.built_up_area) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Built-up Area</span>
+                            <span class="detail-value">
+                                <%= property.built_up_area %> <%= property.area_unit || 'sqft' %>
+                            </span>
+                        </div>
+                        <% } %>
+                        <% if (property.carpet_area) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Carpet Area</span>
+                            <span class="detail-value">
+                                <%= property.carpet_area %> <%= property.area_unit || 'sqft' %>
+                            </span>
+                        </div>
+                        <% } %>
+                        <% if (property.furnishing) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Furnishing</span>
+                            <span class="detail-value"><%= property.furnishing.replace('_', ' ') %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.facing) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Facing</span>
+                            <span class="detail-value"><%= property.facing %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.age_of_property) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Age of Property</span>
+                            <span class="detail-value"><%= property.age_of_property %> years</span>
+                        </div>
+                        <% } %>
+                        <% if (property.floor_number !== undefined) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Floor Number</span>
+                            <span class="detail-value"><%= property.floor_number %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.total_floors) { %>
+                        <div class="detail-row">
+                            <span class="detail-label">Total Floors</span>
+                            <span class="detail-value"><%= property.total_floors %></span>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Amenities & Features -->
+                <% if (property.amenities && property.amenities.length > 0) { %>
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Amenities</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <% property.amenities.forEach(amenity => { %>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                <%= amenity %>
+                            </span>
+                        <% }) %>
+                    </div>
+                </div>
+                <% } %>
+                
+                <% if (property.features && property.features.length > 0) { %>
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Features</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <% property.features.forEach(feature => { %>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                                <%= feature %>
+                            </span>
+                        <% }) %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            
+            <!-- Right Column: Seller Info & Status History -->
+            <div class="space-y-6">
+                <!-- Seller Information -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-lg font-bold mr-4">
+                            <%= property.seller && property.seller.name ? property.seller.name.charAt(0).toUpperCase() : 'S' %>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900">
+                                <%= property.seller ? property.seller.name : 'Unknown Seller' %>
+                            </h4>
+                            <p class="text-sm text-gray-500">
+                                <%= property.seller ? property.seller.email : 'No email' %>
+                            </p>
+                            <% if (property.seller && property.seller.phone) { %>
+                                <p class="text-sm text-gray-500"><%= property.seller.phone %></p>
+                            <% } %>
+                            <% if (property.seller && property.seller.verified) { %>
+                                <span class="inline-block mt-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                    <i class="fas fa-check mr-1"></i> Verified Seller
+                                </span>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Member Since:</span>
+                            <span class="font-medium">
+                                <% if (property.seller && property.seller.created_at) { %>
+                                    <%= new Date(property.seller.created_at).toLocaleDateString() %>
+                                <% } else { %>
+                                    N/A
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Properties Listed:</span>
+                            <span class="font-medium">
+                                <% if (property.seller) { %>
+                                    <!-- You would fetch this from database -->
+                                    Multiple
+                                <% } else { %>
+                                    0
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <% if (property.seller) { %>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <a href="/admin/users/<%= property.seller._id %>" 
+                               class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                                <i class="fas fa-external-link-alt mr-2"></i> View Seller Profile
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Property Status History -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Status History</h3>
+                    <div class="space-y-4">
+                        <% if (property.createdAt) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-plus text-blue-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Property Created</p>
+                                    <p class="text-xs text-gray-500">
+                                        <%= new Date(property.createdAt).toLocaleString() %>
+                                    </p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (property.added_by && property.added_by.user) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-user text-gray-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        Added by 
+                                        <% if (property.added_by.user.name) { %>
+                                            <%= property.added_by.user.name %>
+                                        <% } else { %>
+                                            User
+                                        <% } %>
+                                        (<%= property.added_by.role %>)
+                                    </p>
+                                    <p class="text-xs text-gray-500">Via <%= property.added_by.role %> dashboard</p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (property.approved_at) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-check text-green-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Property Approved</p>
+                                    <p class="text-xs text-gray-500">
+                                        <%= new Date(property.approved_at).toLocaleString() %>
+                                        <% if (property.approved_by && property.approved_by.name) { %>
+                                            by <%= property.approved_by.name %>
+                                        <% } %>
+                                    </p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (property.live_at) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-eye text-blue-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Made Live</p>
+                                    <p class="text-xs text-gray-500">
+                                        <%= new Date(property.live_at).toLocaleString() %>
+                                    </p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (property.rejected_at) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-times text-red-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Property Rejected</p>
+                                    <p class="text-xs text-gray-500">
+                                        <%= new Date(property.rejected_at).toLocaleString() %>
+                                        <% if (property.rejected_by && property.rejected_by.name) { %>
+                                            by <%= property.rejected_by.name %>
+                                        <% } %>
+                                    </p>
+                                    <% if (property.rejection_reason) { %>
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            Reason: <%= property.rejection_reason %>
+                                        </p>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <% if (property.suspended_at) { %>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-pause text-orange-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Property Suspended</p>
+                                    <p class="text-xs text-gray-500">
+                                        <%= new Date(property.suspended_at).toLocaleString() %>
+                                        <% if (property.suspended_by && property.suspended_by.name) { %>
+                                            by <%= property.suspended_by.name %>
+                                        <% } %>
+                                    </p>
+                                    <% if (property.suspension_reason) { %>
+                                        <p class="text-xs text-gray-600 mt-1">
+                                            Reason: <%= property.suspension_reason %>
+                                        </p>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Property Statistics -->
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Views:</span>
+                            <span class="font-medium"><%= property.views || 0 %></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Inquiries:</span>
+                            <span class="font-medium"><%= property.inquiries || 0 %></span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">In Cart:</span>
+                            <span class="font-medium">
+                                <% if (property.cart_status && property.cart_status.in_cart) { %>
+                                    Yes
+                                <% } else { %>
+                                    No
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Expires:</span>
+                            <span class="font-medium">
+                                <% if (property.expires_at) { %>
+                                    <%= new Date(property.expires_at).toLocaleDateString() %>
+                                <% } else { %>
+                                    Never
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Commission Information -->
+                <% if (commissions && commissions.length > 0) { %>
+                <div class="info-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Commissions</h3>
+                    <div class="space-y-3">
+                        <% commissions.forEach(commission => { %>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-gray-900">
+                                        <%= commission.commission_type === 'adder' ? 'Adder' : 'Seller' %> Commission
+                                    </span>
+                                    <span class="text-sm font-bold text-green-600">
+                                        ₹<%= commission.amount ? commission.amount.toLocaleString('en-IN') : '0' %>
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <% if (commission.broker && commission.broker.name) { %>
+                                        Broker: <%= commission.broker.name %>
+                                    <% } %>
+                                    <br>
+                                    Status: 
+                                    <span class="<%= commission.status === 'paid' ? 'text-green-600' : 
+                                                  commission.status === 'approved' ? 'text-blue-600' : 
+                                                  'text-yellow-600' %>">
+                                        <%= commission.status %>
+                                    </span>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        
+        <!-- Similar Properties -->
+        <% if (similarProperties && similarProperties.length > 0) { %>
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Similar Properties</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <% similarProperties.forEach(similar => { %>
+                <a href="/admin/properties/<%= similar._id %>" 
+                   class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <% if (similar.images && similar.images.length > 0) { %>
+                        <img src="<%= similar.images.find(img => img.is_primary)?.url || similar.images[0].url %>" 
+                             alt="<%= similar.title %>" 
+                             class="w-full h-48 object-cover">
+                    <% } else { %>
+                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                            <i class="fas fa-home text-gray-400 text-2xl"></i>
+                        </div>
+                    <% } %>
+                    <div class="p-4">
+                        <h4 class="font-medium text-gray-900 truncate"><%= similar.title %></h4>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-lg font-bold text-gray-900">
+                                ₹<%= similar.price ? similar.price.toLocaleString('en-IN') : '0' %>
+                            </span>
+                            <span class="text-xs px-2 py-1 rounded-full 
+                                <%= similar.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                   similar.status === 'live' ? 'bg-blue-100 text-blue-800' :
+                                   'bg-yellow-100 text-yellow-800' %>">
+                                <%= similar.status ? similar.status.replace('_', ' ') : 'unknown' %>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-xl bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Reject Property</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason for rejection</label>
+                    <textarea id="rejectReason" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" 
+                              placeholder="Provide a clear reason for rejection..."></textarea>
+                    <p class="text-xs text-gray-500 mt-1">This reason will be shared with the seller</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeRejectModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button onclick="confirmReject()" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
+                        Confirm Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function approveProperty() {
+            if (confirm('Are you sure you want to approve this property?')) {
+                fetch(`/admin/api/properties/<%= property._id %>/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ autoGoLive: true })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Property approved successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Failed to approve property.');
+                });
+            }
+        }
+        
+        function showRejectModal() {
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+        
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('rejectReason').value = '';
+        }
+        
+        function confirmReject() {
+            const reason = document.getElementById('rejectReason').value.trim();
+            if (!reason || reason.length < 10) {
+                alert('Please provide a reason (at least 10 characters).');
+                return;
+            }
+            
+            fetch(`/admin/api/properties/<%= property._id %>/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Property rejected successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Failed to reject property.');
+            });
+        }
+        
+        function makeLive() {
+            if (confirm('Make this property live and visible to all users?')) {
+                fetch(`/admin/api/properties/<%= property._id %>/make-live`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Property is now live!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Failed to make property live.');
+                });
+            }
+        }
+        
+        function suspendProperty() {
+            const reason = prompt('Enter reason for suspension (minimum 10 characters):');
+            if (reason && reason.length >= 10) {
+                fetch(`/admin/api/properties/<%= property._id %>/suspend`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason: reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Property suspended successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Failed to suspend property.');
+                });
+            } else if (reason !== null) {
+                alert('Reason must be at least 10 characters.');
+            }
+        }
+        
+        function unsuspendProperty() {
+            if (confirm('Unsuspend this property?')) {
+                fetch(`/admin/api/properties/<%= property._id %>/unsuspend`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Property unsuspended successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Failed to unsuspend property.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Property - Seller Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-900">Propbandhu Seller</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/seller/dashboard" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <a href="/seller/properties" class="text-blue-600 font-medium">
+                        <i class="fas fa-building mr-1"></i>Properties
+                    </a>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">Edit Property</h1>
+                    <p class="text-gray-600">Editing: <%= property.title %></p>
+                </div>
+                <div>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium 
+                        <%= property.edit_permissions?.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
+                        <%= property.edit_permissions?.enabled ? 'Edit Mode Active' : 'Edit Restricted' %>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Edit Restrictions Info -->
+            <% if (property.edit_permissions?.enabled) { %>
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    You can edit this property until <%= new Date(property.edit_permissions.end_time).toLocaleString() %>
+                    <% if (property.edit_permissions.allowed_fields && property.edit_permissions.allowed_fields.length > 0) { %>
+                    <br>Allowed fields: <%= property.edit_permissions.allowed_fields.join(', ') %>
+                    <% } %>
+                </p>
+            </div>
+            <% } else if (!property.edit_permissions?.enabled) { %>
+            <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Edit permissions are currently disabled. Contact admin to enable editing.
+                </p>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- Edit Form -->
+        <form id="editForm" class="bg-white rounded-xl shadow p-6">
+            <!-- Basic Information -->
+            <div class="space-y-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 border-b pb-2">Basic Information</h2>
+                
+                <!-- Property Title -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Property Title</label>
+                    <input type="text" name="title" value="<%= property.title %>"
+                           <%= property.edit_permissions?.allowed_fields?.includes('title') ? '' : 'disabled' %>
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('title') ? '' : 'bg-gray-100' %>">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="4"
+                              <%= property.edit_permissions?.allowed_fields?.includes('description') ? '' : 'disabled' %>
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('description') ? '' : 'bg-gray-100' %>"><%= property.description %></textarea>
+                </div>
+            </div>
+
+            <!-- Price Details -->
+            <div class="space-y-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 border-b pb-2">Price Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                        <input type="number" name="price" value="<%= property.price %>"
+                               <%= property.edit_permissions?.allowed_fields?.includes('price') ? '' : 'disabled' %>
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('price') ? '' : 'bg-gray-100' %>">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price Type</label>
+                        <select name="price_type"
+                                <%= property.edit_permissions?.allowed_fields?.includes('price_type') ? '' : 'disabled' %>
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('price_type') ? '' : 'bg-gray-100' %>">
+                            <option value="fixed" <%= property.price_type === 'fixed' ? 'selected' : '' %>>Fixed Price</option>
+                            <option value="negotiable" <%= property.price_type === 'negotiable' ? 'selected' : '' %>>Negotiable</option>
+                            <option value="auction" <%= property.price_type === 'auction' ? 'selected' : '' %>>Auction</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Specifications -->
+            <div class="space-y-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 border-b pb-2">Property Specifications</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                        <input type="number" name="bedrooms" value="<%= property.bedrooms || '' %>"
+                               <%= property.edit_permissions?.allowed_fields?.includes('bedrooms') ? '' : 'disabled' %>
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('bedrooms') ? '' : 'bg-gray-100' %>">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
+                        <input type="number" name="bathrooms" value="<%= property.bathrooms || '' %>"
+                               <%= property.edit_permissions?.allowed_fields?.includes('bathrooms') ? '' : 'disabled' %>
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('bathrooms') ? '' : 'bg-gray-100' %>">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Built-up Area</label>
+                        <div class="flex">
+                            <input type="number" name="built_up_area" value="<%= property.built_up_area %>"
+                                   <%= property.edit_permissions?.allowed_fields?.includes('built_up_area') ? '' : 'disabled' %>
+                                   class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg <%= property.edit_permissions?.allowed_fields?.includes('built_up_area') ? '' : 'bg-gray-100' %>">
+                            <select name="area_unit"
+                                    <%= property.edit_permissions?.allowed_fields?.includes('area_unit') ? '' : 'disabled' %>
+                                    class="w-24 px-2 border border-l-0 border-gray-300 rounded-r-lg <%= property.edit_permissions?.allowed_fields?.includes('area_unit') ? '' : 'bg-gray-100' %>">
+                                <option value="sqft" <%= property.area_unit === 'sqft' ? 'selected' : '' %>>sq ft</option>
+                                <option value="sqm" <%= property.area_unit === 'sqm' ? 'selected' : '' %>>sq m</option>
+                                <option value="acre" <%= property.area_unit === 'acre' ? 'selected' : '' %>>acre</option>
+                                <option value="hectare" <%= property.area_unit === 'hectare' ? 'selected' : '' %>>hectare</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Furnishing</label>
+                        <select name="furnishing"
+                                <%= property.edit_permissions?.allowed_fields?.includes('furnishing') ? '' : 'disabled' %>
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg <%= property.edit_permissions?.allowed_fields?.includes('furnishing') ? '' : 'bg-gray-100' %>">
+                            <option value="unfurnished" <%= property.furnishing === 'unfurnished' ? 'selected' : '' %>>Unfurnished</option>
+                            <option value="semi_furnished" <%= property.furnishing === 'semi_furnished' ? 'selected' : '' %>>Semi Furnished</option>
+                            <option value="fully_furnished" <%= property.furnishing === 'fully_furnished' ? 'selected' : '' %>>Fully Furnished</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-between border-t pt-6">
+                <a href="/seller/properties/<%= property._id %>" 
+                   class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400">
+                    Cancel
+                </a>
+                
+                <% if (property.edit_permissions?.enabled) { %>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    Save Changes
+                </button>
+                
+                <button type="button" onclick="requestMoreEdits('<%= property._id %>')"
+                        class="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700">
+                    Request More Edit Time
+                </button>
+                <% } else { %>
+                <button type="button" onclick="requestEditAccess('<%= property._id %>')"
+                        class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                    Request Edit Access
+                </button>
+                <% } %>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Form submission
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/seller/properties/<%= property._id %>/edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Property updated successfully!');
+                    window.location.href = '/seller/properties/<%= property._id %>';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update property');
+            }
+        });
+        
+        // Request edit access
+        function requestEditAccess(propertyId) {
+            const reason = prompt('Please provide a reason for requesting edit access:');
+            
+            if (reason) {
+                fetch(`/seller/properties/${propertyId}/request-edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Edit request submitted to admin');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to submit request');
+                });
+            }
+        }
+        
+        // Request more edit time
+        function requestMoreEdits(propertyId) {
+            const reason = prompt('Why do you need more time to edit?');
+            
+            if (reason) {
+                fetch(`/seller/properties/${propertyId}/request-extension`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Extension request submitted to admin');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to submit request');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

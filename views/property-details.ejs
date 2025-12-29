@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .image-item {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center">
+                        <span class="text-xl font-bold text-gray-900">Propbandhu</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <% if (user) { %>
+                        <span class="text-gray-700 font-medium">
+                            <% if (user.role === 'buyer') { %>🏠 Buyer<% } %>
+                            <% if (user.role === 'seller') { %>👤 Seller<% } %>
+                            <% if (user.role === 'broker') { %>🤝 Broker<% } %>
+                            : <%= user.name %>
+                        </span>
+                        <a href="/<%= user.role %>/dashboard" class="text-gray-600 hover:text-blue-600">
+                            Dashboard
+                        </a>
+                        <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                            Logout
+                        </a>
+                    <% } else { %>
+                        <a href="/" class="text-gray-600 hover:text-blue-600">Home</a>
+                        <a href="/register" class="text-gray-600 hover:text-blue-600">Register</a>
+                        <a href="/login" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Login
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Properties
+            </a>
+        </div>
+
+        <!-- Property Header -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                <!-- Title and Basic Info -->
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-3"><%= property.title %></h1>
+                    
+                    <!-- Price -->
+                    <div class="flex items-center mb-4">
+                        <span class="text-3xl font-bold text-blue-600"><%= property.formatted_price %></span>
+                        <% if (property.price_type === 'negotiable') { %>
+                        <span class="ml-3 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                            Price Negotiable
+                        </span>
+                        <% } %>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="flex items-center text-gray-600 mb-4">
+                        <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                        <span><%= property.full_address %></span>
+                    </div>
+                    
+                    <!-- Property Type and Status -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                            <%= property.property_type %>
+                        </span>
+                        <% if (property.sub_type) { %>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
+                            <%= property.sub_type %>
+                        </span>
+                        <% } %>
+                        <span class="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                            <i class="fas fa-check-circle mr-1"></i> Approved
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="bg-gray-50 rounded-lg p-4 min-w-64">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-gray-900"><%= property.bedrooms || 0 %></div>
+                            <div class="text-gray-600 text-sm">Bedrooms</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-gray-900"><%= property.bathrooms || 0 %></div>
+                            <div class="text-gray-600 text-sm">Bathrooms</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-gray-900"><%= property.area || 0 %></div>
+                            <div class="text-gray-600 text-sm"><%= property.area_unit %></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Info -->
+                    <div class="mt-4 pt-4 border-t border-gray-200 space-y-2">
+                        <% if (property.furnishing) { %>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Furnishing:</span>
+                            <span class="font-medium"><%= property.furnishing %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.facing) { %>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Facing:</span>
+                            <span class="font-medium"><%= property.facing %></span>
+                        </div>
+                        <% } %>
+                        <% if (property.age_of_property) { %>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Property Age:</span>
+                            <span class="font-medium"><%= property.age_of_property %> years</span>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Image Gallery -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Property Images</h2>
+                    <% if (property.images && property.images.length > 0) { %>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <% property.images.forEach((image, index) => { %>
+                            <div class="image-item">
+                                <img src="<%= image.url %>" 
+                                     alt="Property image <%= index + 1 %>" 
+                                     class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90"
+                                     onclick="openImageModal('<%= image.url %>')">
+                            </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-8">
+                            <i class="fas fa-image text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500">No images available</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- Description -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Description</h2>
+                    <div class="text-gray-700 leading-relaxed">
+                        <%= property.description %>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <% if (property.amenities && property.amenities.length > 0) { %>
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Amenities</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <% property.amenities.forEach(amenity => { %>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-gray-700 capitalize"><%= amenity.replace('_', ' ') %></span>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+                <% } %>
+
+                <!-- Seller Info -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                    <% if (property.seller) { %>
+                    <div class="bg-blue-50 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold text-blue-900 mb-3">Property Owner</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-blue-800 font-medium"><%= property.seller.name %></p>
+                                <p class="text-blue-700 text-sm mt-1">
+                                    <i class="fas fa-envelope mr-2"></i> <%= property.seller.email %>
+                                </p>
+                            </div>
+                            <div>
+                                <% if (property.seller.phone) { %>
+                                <p class="text-blue-700">
+                                    <i class="fas fa-phone mr-2"></i> <%= property.seller.phone %>
+                                </p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <% } else { %>
+                    <p class="text-gray-500">Contact information not available</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <!-- Action Buttons -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6 sticky top-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Interested in this property?</h3>
+                    
+                    <!-- For Logged In Buyers -->
+                    <% if (user && user.role === 'buyer') { %>
+                    <div class="space-y-3">
+                        <a href="/buyer/properties/<%= property._id %>" 
+                           class="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </a>
+                        <a href="/buyer/schedule-visit/<%= property._id %>" 
+                           class="block w-full border border-blue-600 text-blue-600 text-center py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                            <i class="fas fa-calendar-alt mr-2"></i> Schedule Visit
+                        </a>
+                        <a href="/buyer/dashboard" 
+                           class="block w-full border border-gray-600 text-gray-600 text-center py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
+                            <i class="fas fa-tachometer-alt mr-2"></i> Go to Dashboard
+                        </a>
+                    </div>
+                    
+                    <!-- For Logged In Sellers/Brokers -->
+                    <% } else if (user && (user.role === 'seller' || user.role === 'broker')) { %>
+                    <div class="space-y-3">
+                        <a href="/<%= user.role %>/dashboard" 
+                           class="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                            <i class="fas fa-tachometer-alt mr-2"></i> Go to Dashboard
+                        </a>
+                        <a href="/properties" 
+                           class="block w-full border border-gray-600 text-gray-600 text-center py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
+                            <i class="fas fa-search mr-2"></i> Browse More
+                        </a>
+                    </div>
+                    
+                    <!-- For Non-Logged In Users -->
+                    <% } else { %>
+                    <div class="space-y-3">
+                        <!-- Main CTA: Register to Buy -->
+                        <a href="/register?role=buyer&redirect=/properties/<%= property._id %>" 
+                           class="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition text-lg">
+                            <i class="fas fa-user-plus mr-2"></i> Register to Buy This Property
+                        </a>
+                        
+                        <p class="text-center text-gray-600 text-sm">or</p>
+                        
+                        <!-- Login Button -->
+                        <a href="/login?redirect=/properties/<%= property._id %>" 
+                           class="block w-full border border-blue-600 text-blue-600 text-center py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login to Your Account
+                        </a>
+                        
+                        <!-- Seller Registration -->
+                        <a href="/register?role=seller" 
+                           class="block w-full border border-purple-600 text-purple-600 text-center py-3 rounded-lg font-semibold hover:bg-purple-50 transition">
+                            <i class="fas fa-home mr-2"></i> Register as Seller
+                        </a>
+                        
+                        <!-- Broker Registration -->
+                        <a href="/register?role=broker" 
+                           class="block w-full border border-yellow-600 text-yellow-600 text-center py-3 rounded-lg font-semibold hover:bg-yellow-50 transition">
+                            <i class="fas fa-handshake mr-2"></i> Register as Broker
+                        </a>
+                    </div>
+                    <% } %>
+                    
+                    <!-- Property Stats -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Property ID:</span>
+                                <span class="font-mono text-gray-900"><%= property._id.slice(-8) %></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Listed on:</span>
+                                <span class="font-medium"><%= new Date(property.createdAt).toLocaleDateString('en-IN') %></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Views:</span>
+                                <span class="font-medium"><%= property.views || 0 %></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="font-medium text-green-600">Approved & Live</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                    <h3 class="text-lg font-bold mb-3">Need Help?</h3>
+                    <p class="mb-4 text-blue-100">Our support team is here to assist you.</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-phone mr-3"></i>
+                            <span>Call: 1800-123-4567</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope mr-3"></i>
+                            <span>Email: support@propbandhu.com</span>
+                        </div>
+                    </div>
+                    <button class="mt-4 w-full bg-white text-blue-600 font-semibold py-2 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fas fa-comments mr-2"></i>Chat with Support
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal" onclick="closeImageModal()">
+        <span class="absolute top-4 right-4 text-white text-3xl cursor-pointer">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Image modal functions
+        function openImageModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').style.display = 'block';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+
+        // Add to Cart function (for home page)
+        function addToCart(propertyId, button) {
+            if (!confirm('Add this property to your cart?')) return;
+            
+            fetch('/buyer/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ propertyId: propertyId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    if (button) {
+                        button.innerHTML = '<i class="fas fa-check mr-2"></i> Added to Cart';
+                        button.classList.remove('border-blue-600', 'text-blue-600');
+                        button.classList.add('bg-green-100', 'text-green-800', 'border-green-300');
+                        button.disabled = true;
+                    }
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to add to cart. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

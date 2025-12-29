@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Propbandhu</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/css/sellerdashboard.css">
+
+</head>
+<body class="bg-gray-50">
+    <!-- Top Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-home text-white text-xl"></i>
+                        </div>
+                        <span class="logo-wrapper text-2xl font-bold">Propbandhu</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-4 bg-gray-100 px-4 py-2 rounded-xl">
+                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-400 rounded-full flex items-center justify-center text-white font-bold">
+                            <%= user.name.charAt(0).toUpperCase() %>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">🏠 Seller</p>
+                            <p class="text-xs text-gray-600"><%= user.name %></p>
+                        </div>
+                    </div>
+                    <!-- In your dashboard.ejs file, update the navigation section: -->
+    <div class="flex items-center space-x-4">
+    <a href="/seller/properties/add" class="nav-link">
+        <i class="fas fa-plus-circle mr-2"></i>Add Property
+    </a>
+    <a href="/seller/analytics" class="nav-link">
+        <i class="fas fa-chart-line mr-2"></i>Analytics
+    </a>
+    <a href="/seller/documents" class="nav-link">
+        <i class="fas fa-file-alt mr-2"></i>Documents
+     </a>
+    <a href="/logout" class="logout-btn">
+        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+    </a>
+       </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner p-8 text-white mb-8 animate-fade-in">
+            <div class="flex justify-between items-center relative z-10">
+                <div>
+                    <h1 class="text-4xl font-bold mb-3">Welcome, <%= user.name %>! 👋</h1>
+                    <p class="text-blue-100 text-lg mb-6">Manage your properties and track buyer interest with real-time insights</p>
+                    <div class="flex space-x-4">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+                            <p class="text-sm">Total Properties</p>
+                            <p class="text-2xl font-bold"><%= properties.length %></p>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+                            <p class="text-sm">Live Properties</p>
+                            <p class="text-2xl font-bold"><%= properties.filter(p => p.status === 'live').length %></p>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+                            <p class="text-sm">In Buyer Cart</p>
+                            <p class="text-2xl font-bold"><%= properties.filter(p => p.cart_status && p.cart_status.in_cart).length %></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden lg:block">
+                    <i class="fas fa-chart-network text-white/30 text-8xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in" style="animation-delay: 0.2s">
+            <div class="stat-card p-6">
+                <div class="flex items-center">
+                    <div class="stat-icon bg-blue-100 text-blue-600 mr-4">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Total Properties</h3>
+                        <p class="text-3xl font-bold text-blue-600"><%= properties.length %></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600">All your properties</p>
+                </div>
+            </div>
+            
+            <div class="stat-card p-6">
+                <div class="flex items-center">
+                    <div class="stat-icon bg-green-100 text-green-600 mr-4">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Live Properties</h3>
+                        <p class="text-3xl font-bold text-green-600">
+                            <%= properties.filter(p => p.status === 'live').length %>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= properties.length > 0 ? (properties.filter(p => p.status === 'live').length / properties.length * 100) : 0 %>%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600"><%= properties.filter(p => p.status === 'live').length %> of <%= properties.length %></p>
+                </div>
+            </div>
+            
+            <div class="stat-card p-6">
+                <div class="flex items-center">
+                    <div class="stat-icon bg-yellow-100 text-yellow-600 mr-4">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">In Buyer Cart</h3>
+                        <p class="text-3xl font-bold text-yellow-600">
+                            <%= properties.filter(p => p.cart_status && p.cart_status.in_cart).length %>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= properties.length > 0 ? (properties.filter(p => p.cart_status && p.cart_status.in_cart).length / properties.length * 100) : 0 %>%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600">Active interest</p>
+                </div>
+            </div>
+            
+            <div class="stat-card p-6">
+                <div class="flex items-center">
+                    <div class="stat-icon bg-purple-100 text-purple-600 mr-4">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700">Total Views</h3>
+                        <p class="text-3xl font-bold text-purple-600">
+                            <%= properties.reduce((sum, p) => sum + (p.views || 0), 0) %>
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600">Last 30 days</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Property Management -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 animate-fade-in" style="animation-delay: 0.3s">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Your Properties</h2>
+                            <p class="text-gray-600">Manage and track all your properties</p>
+                        </div>
+                        <a href="/seller/properties/add" 
+                                  class="primary-action">
+                                <i class="fas fa-plus mr-2"></i>Add New Property
+                              </a>
+                    </div>
+                    
+                    <% if (properties.length === 0) { %>
+                        <div class="empty-state">
+                            <i class="fas fa-home empty-state-icon"></i>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No properties yet</h3>
+                            <p class="text-gray-600 mb-6">Start your journey by adding your first property listing</p>
+                            <a href="/seller/properties/add" class="primary-action inline-block">
+                                <i class="fas fa-plus mr-2"></i>Add Your First Property
+                            </a>
+                        </div>
+                    <% } else { %>
+                        <div class="space-y-6">
+                            <% properties.forEach(property => { 
+                                const statusClass = 'status-' + (property.status || 'draft');
+                                const isLocked = property.cart_status && property.cart_status.in_cart;
+                                const isEditable = property.edit_permissions && property.edit_permissions.enabled;
+                            %>
+                            <div class="property-card p-5 hover-lift">
+                                <div class="flex flex-col lg:flex-row">
+                                    <div class="property-image mr-5 mb-4 lg:mb-0">
+                                        <img src="<%= property.images && property.images[0] ? property.images[0].url : '/images/placeholder.jpg' %>" 
+                                             alt="<%= property.title %>">
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-col lg:flex-row justify-between items-start mb-4">
+                                            <div class="mb-3 lg:mb-0">
+                                                <h3 class="font-bold text-xl text-gray-900 mb-1"><%= property.title %></h3>
+                                                <p class="text-gray-600 text-sm flex items-center">
+                                                    <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                                                    <%= property.location %>
+                                                </p>
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <span class="status-badge <%= statusClass %>">
+                                                    <i class="fas fa-circle mr-1" style="font-size: 8px;"></i>
+                                                    <%= property.status || 'draft' %>
+                                                </span>
+                                                <% if (isLocked) { %>
+                                                <span class="status-badge status-locked">
+                                                    <i class="fas fa-lock mr-1"></i>Locked
+                                                </span>
+                                                <% } %>
+                                                <% if (isEditable) { %>
+                                                <span class="status-badge status-pending">
+                                                    <i class="fas fa-edit mr-1"></i>Editable
+                                                </span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4">
+                                            <div>
+                                                <p class="text-blue-600 font-bold text-xl mb-1"><%= property.formatted_price %></p>
+                                                <p class="text-gray-600 text-sm flex items-center space-x-4">
+                                                    <span><i class="fas fa-bed mr-1"></i><%= property.bedrooms || '-' %> Beds</span>
+                                                    <span><i class="fas fa-bath mr-1"></i><%= property.bathrooms || '-' %> Baths</span>
+                                                    <span><i class="fas fa-ruler-combined mr-1"></i><%= property.area ? property.area + ' ' + (property.area_unit || 'sq ft') : '-' %></span>
+                                                </p>
+                                            </div>
+                                            <!-- In the property card section, update these links: -->
+      <div class="flex space-x-2 mt-3 lg:mt-0">
+             <a href="/seller/properties/<%= property._id %>/edit" 
+                 class="action-btn edit-btn">
+                   <i class="fas fa-edit mr-2"></i>Edit
+                 </a>
+                 <a href="/seller/properties/<%= property._id %>" 
+                   class="action-btn view-btn">
+                   <i class="fas fa-external-link-alt mr-2"></i>View
+             </a>
+          </div>
+                                        </div>
+                                        
+                                        <!-- Cart Lock Status -->
+                                        <% if (isLocked) { 
+                                            const addedDate = new Date(property.cart_status.added_at);
+                                            const visitExpiry = new Date(addedDate);
+                                            visitExpiry.setDate(visitExpiry.getDate() + 7);
+                                            const now = new Date();
+                                            const daysLeft = Math.ceil((visitExpiry - now) / (1000 * 60 * 60 * 24));
+                                        %>
+                                        <div class="notice-card cart-notice">
+                                            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center">
+                                                <div class="mb-2 lg:mb-0">
+                                                    <p class="font-medium text-yellow-800 flex items-center">
+                                                        <i class="fas fa-shopping-cart mr-2"></i>
+                                                        Property in Buyer Cart
+                                                    </p>
+                                                    <p class="text-sm text-yellow-700">
+                                                        <% if (property.cart_status.visit_confirmed) { %>
+                                                            <i class="fas fa-check-circle mr-1"></i>Booking window active (60 days remaining)
+                                                        <% } else { %>
+                                                            <i class="fas fa-clock mr-1"></i>Visit required within 
+                                                            <span class="font-bold <%= daysLeft <= 2 ? 'text-red-600' : '' %>">
+                                                                <%= daysLeft %> <%= daysLeft === 1 ? 'day' : 'days' %>
+                                                            </span>
+                                                        <% } %>
+                                                    </p>
+                                                </div>
+                                               <!-- Update the viewCartDetails function call: -->
+                                         <button onclick="viewCartDetails('<%= property._id %>')" 
+                                            class="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center">
+                                            Details <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                                             </button>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                        
+                                        <!-- Edit Permission Status -->
+                                        <% if (isEditable) { 
+                                            const startTime = new Date(property.edit_permissions.start_time);
+                                            const endTime = new Date(property.edit_permissions.end_time);
+                                            const now = new Date();
+                                            const timeLeft = Math.ceil((endTime - now) / (1000 * 60 * 60));
+                                        %>
+                                        <div class="notice-card edit-notice">
+                                            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center">
+                                                <div class="mb-2 lg:mb-0">
+                                                    <p class="font-medium text-blue-800 flex items-center">
+                                                        <i class="fas fa-edit mr-2"></i>
+                                                        Edit Permission Granted
+                                                    </p>
+                                                    <p class="text-sm text-blue-700">
+                                                        You can edit: 
+                                                        <span class="font-medium"><%= property.edit_permissions.allowed_fields.join(', ') %></span>
+                                                        <br>Expires in: 
+                                                        <span class="font-bold <%= timeLeft <= 6 ? 'text-red-600' : '' %>">
+                                                            <%= timeLeft %> <%= timeLeft === 1 ? 'hour' : 'hours' %>
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                <a href="/seller/edit-property/<%= property._id %>" 
+                                                   class="action-btn edit-btn">
+                                                    Edit Now <i class="fas fa-arrow-right ml-2"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" style="animation-delay: 0.4s">
+                    <div class="stat-card p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6">Property Status</h3>
+                        <div class="space-y-4">
+                            <% const statusCounts = {
+                                draft: properties.filter(p => p.status === 'draft').length,
+                                pending_approval: properties.filter(p => p.status === 'pending_approval').length,
+                                live: properties.filter(p => p.status === 'live').length,
+                                sold: properties.filter(p => p.status === 'sold').length
+                            } %>
+                            
+                            <% Object.entries(statusCounts).forEach(([status, count]) => { 
+                                const percentage = properties.length > 0 ? (count / properties.length * 100) : 0;
+                            %>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-700 capitalize"><%= status.replace('_', ' ') %></span>
+                                    <span class="font-bold"><%= count %> (<%= percentage.toFixed(0) %>%)</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <%= percentage %>%"></div>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6">Performance Metrics</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-700">Total Views</span>
+                                    <span class="font-bold text-purple-600"><%= properties.reduce((sum, p) => sum + (p.views || 0), 0) %></span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-700">Inquiries</span>
+                                    <span class="font-bold text-green-600"><%= properties.reduce((sum, p) => sum + (p.inquiries || 0), 0) %></span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-700">Cart Adds</span>
+                                    <span class="font-bold text-yellow-600"><%= properties.filter(p => p.cart_status && p.cart_status.in_cart).length %></span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-700">Average Price</span>
+                                    <span class="font-bold text-blue-600">
+                                        ₹<%= properties.length > 0 ? 
+                                            Math.round(properties.reduce((sum, p) => sum + (p.price || 0), 0) / properties.length / 100000).toLocaleString() + 'L' : 
+                                            '0' %>
+                                    </span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <div class="space-y-6">
+                <!-- Cart Lock Overview -->
+                <div class="quick-action-card p-6 animate-fade-in" style="animation-delay: 0.3s">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Cart Lock Status 🔒</h2>
+                    <% const lockedProperties = properties.filter(p => p.cart_status && p.cart_status.in_cart); %>
+                    <% if (lockedProperties.length === 0) { %>
+                        <div class="text-center py-8">
+                            <i class="fas fa-unlock text-gray-300 text-5xl mb-3"></i>
+                            <p class="text-gray-600 font-medium">No properties locked in cart</p>
+                            <p class="text-gray-500 text-sm mt-1">Properties added to buyer cart will appear here</p>
+                        </div>
+                    <% } else { %>
+                        <div class="space-y-4">
+                            <% lockedProperties.forEach(property => { 
+                                const addedDate = new Date(property.cart_status.added_at);
+                                const visitExpiry = new Date(addedDate);
+                                visitExpiry.setDate(visitExpiry.getDate() + 7);
+                                const now = new Date();
+                                const daysLeft = Math.ceil((visitExpiry - now) / (1000 * 60 * 60 * 24));
+                            %>
+                            <div class="p-4 border border-gray-200 rounded-xl hover:border-yellow-400 transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-semibold text-gray-900 text-sm truncate"><%= property.title %></h4>
+                                    <span class="text-xs font-medium <%= daysLeft <= 2 ? 'text-red-600' : 'text-yellow-600' %>">
+                                        <% if (property.cart_status.visit_confirmed) { %>
+                                            <i class="fas fa-check-circle mr-1"></i>Active
+                                        <% } else { %>
+                                            <i class="fas fa-clock mr-1"></i><%= daysLeft %>d
+                                        <% } %>
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-600 mb-2 truncate"><%= property.location %></p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-bold text-blue-600"><%= property.formatted_price %></span>
+                                    <button onclick="viewCartDetails('<%= property._id %>')" 
+                                            class="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center">
+                                        Details <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <p class="text-sm text-gray-600 flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-2"></i>
+                            Properties locked in buyer cart cannot be sold outside platform for 7 days
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-action-card p-6 animate-fade-in" style="animation-delay: 0.4s">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions ⚡</h2>
+                    <div class="space-y-3">
+                        <a href="/seller/properties/add" class="primary-action block text-center">
+                            <i class="fas fa-plus-circle mr-2"></i>Add New Property
+                        </a>
+                        <a href="/seller/documents" class="secondary-action block text-center">
+                            <i class="fas fa-upload mr-2"></i>Upload Documents
+                        </a>
+                        <a href="/seller/analytics" class="block w-full bg-gray-100 text-gray-700 text-center py-3 rounded-xl hover:bg-gray-200 hover-lift">
+                            <i class="fas fa-chart-bar mr-2"></i>View Analytics
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="quick-action-card p-6 animate-fade-in" style="animation-delay: 0.5s">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-900">Recent Activity 📝</h2>
+                        <span class="text-xs text-gray-500">Today</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="activity-item">
+                            <p class="font-medium text-sm text-gray-900 mb-1">Property "Luxury Villa" added to cart</p>
+                            <p class="text-xs text-gray-600">Buyer showed interest • 2 hours ago</p>
+                        </div>
+                        <div class="activity-item">
+                            <p class="font-medium text-sm text-gray-900 mb-1">Property "3 BHK Apartment" approved</p>
+                            <p class="text-xs text-gray-600">Now live on platform • 1 day ago</p>
+                        </div>
+                        <div class="activity-item">
+                            <p class="font-medium text-sm text-gray-900 mb-1">Edit permission granted for "2 BHK Flat"</p>
+                            <p class="text-xs text-gray-600">Expires in 24 hours • 2 days ago</p>
+                        </div>
+                        <div class="activity-item">
+                            <p class="font-medium text-sm text-gray-900 mb-1">New inquiry for "Penthouse Suite"</p>
+                            <p class="text-xs text-gray-600">Potential buyer contacted • 3 days ago</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="/seller/analytics" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            View All Activity <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       function viewCartDetails(propertyId) {
+    // Redirect to cart details page
+    window.location.href = '/seller/properties/' + propertyId + '/cart-details';
+}
+        // Add animations on scroll
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.animate-fade-in');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, index * 100);
+            });
+            
+            // Update countdown timers
+            function updateTimers() {
+                const countdownElements = document.querySelectorAll('.text-yellow-600, .text-red-600');
+                countdownElements.forEach(el => {
+                    const text = el.textContent;
+                    const match = text.match(/(\d+)\s*(d|h)/);
+                    if (match) {
+                        const value = parseInt(match[1]);
+                        const unit = match[2];
+                        if (value > 0) {
+                            el.textContent = (value - 1) + unit;
+                        }
+                    }
+                });
+            }
+            
+            // Update every minute
+            setInterval(updateTimers, 60000);
+        });
+    </script>
+</body>
+</html>
