@@ -234,7 +234,13 @@ app.post('/api/register', async (req, res) => {
   try {
     const { name, email, phone, password, role = 'buyer' } = req.body;
     
-    const User = require('../models/user');
+    const path = require('path');
+    const fs = require('fs');
+    const __dirname = path.dirname(new URL(import.meta.url).pathname); // ESM or
+// or for CommonJS:
+    const __dirname = path.dirname(process.mainModule.filename);
+    const User = require(path.join(__dirname, '../models/user'));
+
     
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
@@ -370,4 +376,5 @@ app.listen(PORT, () => {
    3. Login with your credentials
    4. You'll be redirected to /seller/dashboard
 `);
+
 });
