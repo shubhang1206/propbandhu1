@@ -233,13 +233,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, phone, password, role = 'buyer' } = req.body;
-    
-    const path = require('path');
-    const fs = require('fs');
-    const __dirname = path.dirname(new URL(import.meta.url).pathname); // ESM or
-// or for CommonJS:
-    const __dirname = path.dirname(process.mainModule.filename);
-    const User = require(path.join(__dirname, '../models/user'));
+    const User = require('../models/user');
 
     
     const existingEmail = await User.findOne({ email });
@@ -378,3 +372,4 @@ app.listen(PORT, () => {
 `);
 
 });
+
